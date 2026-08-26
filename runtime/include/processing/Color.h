@@ -17,4 +17,12 @@ void fill(int r, int g, int b, int a = 255);
 // Color de contorno usado por rect()/ellipse()/line().
 void stroke(int r, int g, int b, int a = 255);
 
+// Desactiva el relleno de las formas siguientes, hasta la próxima
+// llamada a fill().
+void noFill();
+
+// Desactiva el contorno de las formas siguientes, hasta la próxima
+// llamada a stroke().
+void noStroke();
+
 } // namespace processing

@@ -1,9 +1,9 @@
 // Window.cpp
 //
-// Creación de ventana y bucle principal sobre SDL2 (Fase 0: usa el
-// renderer 2D de SDL2 en vez de OpenGL puro, para validar el flujo
-// completo con el mínimo boilerplate; ver internal.h/Renderer.cpp. Migrar
-// a OpenGL puro, si hace falta para 3D, queda para Fase 1/5).
+// Creación de ventana y bucle principal sobre SDL2 (usa el renderer 2D
+// de SDL2 en vez de OpenGL puro, para minimizar boilerplate; ver
+// internal.h/Renderer.cpp. Migrar a OpenGL puro, si hace falta para 3D,
+// queda para una fase posterior).
 
 #include "processing/Sketch.h"
 #include "processing/Input.h"
@@ -19,17 +19,27 @@ int frameCount = 0;
 
 int mouseX = 0;
 int mouseY = 0;
+int pmouseX = 0;
+int pmouseY = 0;
 bool mousePressed = false;
+int mouseButton = 0;
 bool keyPressed = false;
 char key = 0;
 
 namespace internal {
 SDL_Renderer* renderer = nullptr;
+float targetFrameRate = 60.0f;
 } // namespace internal
 
 void size(int w, int h) {
     width = w;
     height = h;
+}
+
+void frameRate(float fps) {
+    if (fps > 0.0f) {
+        internal::targetFrameRate = fps;
+    }
 }
 
 int run(int argc, char** argv) {
@@ -41,8 +51,8 @@ int run(int argc, char** argv) {
         return 1;
     }
 
-    // setup() puede llamar a size() para fijar el tamaño real antes de
-    // crear la ventana.
+    // setup() puede llamar a size() y frameRate() para fijar el tamaño
+    // real y el framerate objetivo antes de crear la ventana.
     ::setup();
 
     SDL_Window* window = SDL_CreateWindow(
@@ -68,8 +78,18 @@ int run(int argc, char** argv) {
         return 1;
     }
 
+    const Uint64 perfFreq = SDL_GetPerformanceFrequency();
+
     bool running = true;
     while (running) {
+        const Uint64 frameStart = SDL_GetPerformanceCounter();
+
+        // pmouseX/pmouseY reflejan la posición al inicio del frame
+        // anterior, igual que en Processing; mouseX/mouseY se van
+        // actualizando con cada evento de este frame.
+        pmouseX = mouseX;
+        pmouseY = mouseY;
+
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
@@ -92,6 +112,7 @@ int run(int argc, char** argv) {
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     mousePressed = true;
+                    mouseButton = e.button.button; // coincide con LEFT/CENTER/RIGHT
                     break;
                 case SDL_MOUSEBUTTONUP:
                     mousePressed = false;
@@ -105,9 +126,12 @@ int run(int argc, char** argv) {
         SDL_RenderPresent(internal::renderer);
         frameCount++;
 
-        // ~60 FPS fijos. framerate() configurable y un reloj real llegan
-        // en Fase 1.
-        SDL_Delay(16);
+        const Uint64 frameEnd = SDL_GetPerformanceCounter();
+        const double elapsedMs = (double)(frameEnd - frameStart) * 1000.0 / (double)perfFreq;
+        const double targetMs = 1000.0 / (double)internal::targetFrameRate;
+        if (elapsedMs < targetMs) {
+            SDL_Delay((Uint32)(targetMs - elapsedMs));
+        }
     }
 
     SDL_DestroyRenderer(internal::renderer);

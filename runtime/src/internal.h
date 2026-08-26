@@ -21,6 +21,12 @@ struct RGBA {
 
 extern RGBA fillColor;
 extern RGBA strokeColor;
+extern bool doFill;
+extern bool doStroke;
+
+// Fotogramas por segundo objetivo del bucle en run() (Window.cpp);
+// modificado por processing::frameRate().
+extern float targetFrameRate;
 
 } // namespace internal
 } // namespace processing

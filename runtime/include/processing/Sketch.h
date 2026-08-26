@@ -23,8 +23,12 @@ extern int frameCount;
 
 // Fija el tamaño de la ventana. Solo tiene efecto si se llama desde
 // setup(), antes de que run() cree la ventana (limitación conocida de
-// Fase 0; redimensionar en caliente se evaluará en Fase 1).
+// Fase 0; redimensionar en caliente se evaluará más adelante).
 void size(int w, int h);
+
+// Fija los fotogramas por segundo objetivo del bucle (60 por defecto).
+// Se puede llamar en cualquier momento, normalmente desde setup().
+void frameRate(float fps);
 
 // Inicializa SDL2, crea la ventana, llama a setup() una vez y luego a
 // draw() en cada frame hasta que el usuario cierra la ventana o pulsa
