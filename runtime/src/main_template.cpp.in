@@ -10,6 +10,10 @@
 
 #include "processing/Processing.h"
 
+// El sketch del usuario llama a la API (size(), background(), rect()...)
+// sin prefijo, igual que en Processing normal.
+using namespace processing;
+
 // {{USER_SKETCH_CODE}}
 
 int main(int argc, char** argv) {
