@@ -1,15 +1,20 @@
 // Color.h
 //
-// fill(), stroke(), background() y manejo de color.
-//
-// TODO (Fase 1 - Runtime C++): implementar.
+// background()/fill()/stroke() mínimos (Fase 0): valores RGBA en
+// [0, 255], sin modos de color alternativos todavía (ver Fase 5).
 
 #pragma once
 
 namespace processing {
 
-void fill(float r, float g, float b, float a = 255);
-void stroke(float r, float g, float b, float a = 255);
-void background(float r, float g, float b, float a = 255);
+// Limpia la ventana con el color dado. Debe llamarse al principio de
+// draw() (igual que en Processing).
+void background(int r, int g, int b, int a = 255);
+
+// Color de relleno usado por las siguientes llamadas a rect()/ellipse().
+void fill(int r, int g, int b, int a = 255);
+
+// Color de contorno usado por rect()/ellipse()/line().
+void stroke(int r, int g, int b, int a = 255);
 
 } // namespace processing

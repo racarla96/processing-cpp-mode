@@ -10,6 +10,3 @@
 #include "processing/Shapes.h"
 #include "processing/Color.h"
 #include "processing/Input.h"
-
-// TODO (Fase 1 - Runtime C++): añadir aquí width/height y demás globales
-// según se vayan implementando.

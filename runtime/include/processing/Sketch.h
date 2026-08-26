@@ -1,20 +1,38 @@
 // Sketch.h
 //
-// Clase base con setup()/draw(), equivalente a PApplet. Es el primer
-// archivo a escribir en la Fase 0 (Validación técnica): debe ser mínimo
-// y permitir compilar y correr un ejemplo a mano antes de tocar Java/PDE.
+// Núcleo mínimo del runtime (Fase 0 - Validación técnica): variables
+// globales width/height, size() y el bucle principal run(), que crea la
+// ventana y llama a setup()/draw() del usuario.
 //
-// TODO (Fase 0 - Validación técnica): implementar versión mínima.
+// El sketch del usuario NO define una clase: solo implementa las
+// funciones libres setup() y draw() (declaradas al final de este
+// archivo), igual que un sketch Processing normal. En fases posteriores
+// CppSketch.java inyectará esas funciones en la plantilla
+// runtime/src/main_template.cpp.in junto con un main() que llama a
+// processing::run(); en Fase 0 ese main() se escribe a mano (ver
+// examples/hello_circle/main.cpp) para validar el flujo sin tocar
+// Java/PDE.
 
 #pragma once
 
 namespace processing {
 
-class Sketch {
-public:
-    virtual ~Sketch() = default;
-    virtual void setup() {}
-    virtual void draw() {}
-};
+extern int width;
+extern int height;
+extern int frameCount;
+
+// Fija el tamaño de la ventana. Solo tiene efecto si se llama desde
+// setup(), antes de que run() cree la ventana (limitación conocida de
+// Fase 0; redimensionar en caliente se evaluará en Fase 1).
+void size(int w, int h);
+
+// Inicializa SDL2, crea la ventana, llama a setup() una vez y luego a
+// draw() en cada frame hasta que el usuario cierra la ventana o pulsa
+// Escape. Devuelve el código de salida del proceso.
+int run(int argc, char** argv);
 
 } // namespace processing
+
+// Funciones que debe implementar el sketch del usuario.
+void setup();
+void draw();

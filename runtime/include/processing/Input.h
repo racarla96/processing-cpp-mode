@@ -1,8 +1,7 @@
 // Input.h
 //
-// Variables globales de entrada: mouseX, mouseY, keyPressed, etc.
-//
-// TODO (Fase 1 - Runtime C++): implementar.
+// Variables globales de entrada, actualizadas por el bucle de eventos en
+// Window.cpp antes de cada llamada a draw().
 
 #pragma once
 

@@ -1,17 +1,17 @@
 // main_template.cpp.in
 //
 // Plantilla que envuelve el sketch del usuario (solo setup()/draw()) con
-// main() y el bucle de eventos. CppSketch.java inyecta el código del
-// usuario en el punto marcado abajo para generar el .cpp real a compilar.
+// main(). CppSketch.java inyectará el código del usuario en el punto
+// marcado abajo para generar el .cpp real a compilar.
 //
-// TODO (Fase 2 - Preprocesador/plantillas): implementar.
+// examples/hello_circle/main.cpp es el equivalente escrito a mano de lo
+// que este template + un sketch.cpp generarán, usado para validar el
+// runtime en Fase 0 sin depender todavía del preprocesador.
 
 #include "processing/Processing.h"
 
 // {{USER_SKETCH_CODE}}
 
 int main(int argc, char** argv) {
-    // TODO: instanciar el sketch, crear ventana y correr el bucle
-    // setup() -> draw() en cada frame.
-    return 0;
+    return processing::run(argc, argv);
 }

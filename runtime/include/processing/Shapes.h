@@ -1,8 +1,9 @@
 // Shapes.h
 //
-// Primitivas 2D: rect(), ellipse(), line(), etc.
-//
-// TODO (Fase 1 - Runtime C++): implementar.
+// Primitivas 2D mínimas (Fase 0). x,y en rect() es la esquina superior
+// izquierda (modo CORNER, el default de Processing); x,y en ellipse() es
+// el centro (modo CENTER, también el default). w,h son ancho/alto (o
+// diámetros, en el caso de ellipse()).
 
 #pragma once
 

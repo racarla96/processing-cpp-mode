@@ -1,0 +1,2 @@
+add_executable(hello_circle main.cpp)
+target_link_libraries(hello_circle PRIVATE processing_cpp_runtime)
