@@ -9,21 +9,29 @@ import processing.app.ui.EditorException;
 import processing.app.ui.EditorState;
 
 /**
- * CppMode.java
+ * CppModeDev.java
  *
  * Punto de entrada del Mode C++ para Processing4. Registra el editor
  * (CppEditor) y expone las rutas al runtime C++ (headers + fuentes)
  * que CppBuild necesita para compilar cada sketch.
+ *
+ * Se llama CppModeDev (no CppMode) a propósito: Processing exige que el
+ * .jar, la clase Java dentro de él y la carpeta de instalación en
+ * sketchbook/modes/ compartan el mismo nombre (ver
+ * ModeContribution.findClassInZipFile() en el PDE), y "CppMode" ya lo
+ * usa processing-cpp/processing.cpp — un Mode C++ para Processing4
+ * distinto y más maduro (ver CLAUDE.md). Este nombre evita chocar con
+ * esa instalación si conviven en el mismo sketchbook.
  */
-public class CppMode extends Mode {
+public class CppModeDev extends Mode {
 
-    public CppMode(Base base, File folder) {
+    public CppModeDev(Base base, File folder) {
         super(base, folder);
     }
 
     @Override
     public String getTitle() {
-        return "C++";
+        return "C++ (dev)";
     }
 
     @Override
@@ -48,20 +56,25 @@ public class CppMode extends Mode {
 
     /**
      * Raíz del runtime C++ (headers en include/, fuentes en src/, ver
-     * CLAUDE.md). En este repo mode/ y runtime/ son carpetas hermanas,
-     * layout válido mientras se desarrolla apuntando el PDE directamente
-     * a mode/ como carpeta del Mode.
+     * CLAUDE.md). Se busca en este orden:
      *
-     * TODO: cuando el Mode se empaquete de verdad para distribuirse,
-     * el runtime (headers + toolchain) tendrá que vendorizarse dentro
-     * de la distribución del Mode en vez de asumir este layout de
-     * desarrollo; PROCESSING_CPP_MODE_RUNTIME permite apuntar a otra
-     * ruta mientras tanto (por ejemplo, en tests).
+     *   1. PROCESSING_CPP_MODE_RUNTIME (override explícito, útil en dev/tests).
+     *   2. <carpeta del Mode>/runtime — el caso normal para un Mode
+     *      instalado de verdad: scripts/package-mode.sh copia runtime/
+     *      dentro de la distribución, así que viaja junto al .jar sin
+     *      depender de dónde esté el resto del repo.
+     *   3. <carpeta del Mode>/../runtime — layout de desarrollo en este
+     *      repo, donde mode/ y runtime/ son carpetas hermanas y el PDE
+     *      apunta directamente a mode/ sin pasar por el empaquetado.
      */
     public File getRuntimeRoot() {
         String override = System.getenv("PROCESSING_CPP_MODE_RUNTIME");
         if (override != null) {
             return new File(override);
+        }
+        File bundled = new File(getFolder(), "runtime");
+        if (bundled.exists()) {
+            return bundled;
         }
         return new File(getFolder(), "../runtime").getAbsoluteFile();
     }

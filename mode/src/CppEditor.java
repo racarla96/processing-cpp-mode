@@ -37,13 +37,13 @@ import processing.app.ui.Toolkit;
  */
 public class CppEditor extends Editor {
 
-    private final CppMode cppMode;
+    private final CppModeDev cppMode;
     private final CppRunner runner = new CppRunner();
 
     protected CppEditor(Base base, String path, EditorState state, Mode mode)
             throws EditorException {
         super(base, path, state, mode);
-        this.cppMode = (CppMode) mode;
+        this.cppMode = (CppModeDev) mode;
     }
 
     @Override

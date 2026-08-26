@@ -1,18 +1,12 @@
 # processing-cpp-mode
 
-## ⚠️ Proyecto detenido (26/08/2026)
-Durante la Fase 4 descubrimos que ya existe **[processing-cpp/processing.cpp](https://github.com/processing-cpp/processing.cpp)**,
-un Mode C++ para Processing4 mucho más maduro que resuelve el mismo problema descrito
-abajo: mismo modelo compilar-y-ejecutar, sin hot-reload, `setup()`/`draw()` dentro del
-PDE. Va más lejos que este repo en varios frentes: doble modo de uso (Mode instalable vía
-Contribution Manager *y* librería header-only standalone fuera del PDE), soporte real de
-Windows/macOS/Linux con CI y releases descargables, y sitio de documentación propio. Activo
-(commits hasta días antes de esta nota), LGPL-2.1, usa GLFW+GLEW en vez de SDL2.
-
-Decisión: dejar de duplicar esfuerzo y usar/contribuir a ese proyecto en vez de continuar
-este. Este repo se conserva como está (funcional hasta donde se validó: Fases 0-3 probadas
-de extremo a extremo, Fase 4 parcialmente implementada — ver historial de commits) a modo de
-referencia/aprendizaje, sin desarrollo activo previsto.
+## Nota sobre processing-cpp/processing.cpp
+Existe **[processing-cpp/processing.cpp](https://github.com/processing-cpp/processing.cpp)**,
+un Mode C++ para Processing4 mucho más maduro (parser de C++ propio con AST, GLFW+GLEW,
+caché de compilación incremental, instalable vía Contribution Manager, ~400 commits desde
+mayo de 2026). Se evaluó pararse aquí y usar ese proyecto en su lugar, pero se decidió
+continuar este como proyecto propio — con objetivos concretos que ese proyecto no cubre tal
+cual (ver más abajo) — usándolo como referencia de arquitectura, no como sustituto directo.
 
 ## Objetivo
 Crear un "Mode" nuevo para Processing4 (https://github.com/processing/processing4) que permita
@@ -36,7 +30,7 @@ igual que ya hace el modo Java internamente: guardar → Play → compilar → l
 processing-cpp-mode/
 ├── mode/                      # Integración PDE (Java)
 │   ├── src/
-│   │   ├── CppMode.java
+│   │   ├── CppModeDev.java
 │   │   ├── CppEditor.java
 │   │   ├── CppBuild.java       # invoca g++/clang++, parsea errores
 │   │   ├── CppSketch.java      # preprocesador (envuelve el sketch del usuario)
@@ -67,7 +61,7 @@ processing-cpp-mode/
 1. **Runtime C++** — ventana/loop, primitivas 2D, variables globales (width, height, mouseX...),
    input básico, empaquetado como librería estática.
 2. **Preprocesador/plantillas** — transformar el .cpp del usuario en el archivo compilable real.
-3. **Integración PDE (Java)** — CppMode, invocación del compilador, parseo de errores a líneas
+3. **Integración PDE (Java)** — CppModeDev, invocación del compilador, parseo de errores a líneas
    del editor, CppRunner para gestionar el proceso hijo.
 4. **UX** — Play/Stop, consola de errores clickeable, ejemplos, ocultar la plantilla al usuario.
 5. **Pulido** — soporte 3D, autocompletado (clangd), compilación incremental.
@@ -85,19 +79,29 @@ aunque técnicamente es código independiente. Referencia: la librería core de 
 LGPL-2.1, pero "todo lo demás incluyendo el PDE" es GPL-2.0 (ver LICENSE.md de processing4).
 
 ## Estado actual
-Detenido en Fase 4 (ver nota al principio del documento). Resumen de lo validado antes de
-parar:
+Retomado en Fase 4. **El Mode ya es instalable y se validó de extremo a extremo dentro de
+una instancia real del PDE** (Processing 4.0.1, UI Swing clásica): aparece "C++ (dev)" en el
+desplegable de modos, se puede crear un sketch nuevo, pulsar Play, y el binario compila y se
+ejecuta. Se llama "C++ (dev)" y no "C++ Mode"/"CppMode" a propósito, para no chocar con
+processing-cpp/processing.cpp si conviven en el mismo sketchbook (Processing exige que
+carpeta, .jar y clase Java compartan nombre — ver `mode/src/CppModeDev.java`).
+
+Resumen de lo validado:
 - **Fase 0-1 (runtime C++/SDL2)**: `Sketch.h`, bucle con `frameRate()` real, primitivas
   (`rect`/`ellipse`/`triangle`/`point`/`line`), input (`mouseX`/`pmouseX`/`mouseButton`...),
   compilado y ejecutado a mano con éxito.
 - **Fase 2 (preprocesador)**: `CppSketch.java` concatena tabs y las inyecta en
   `main_template.cpp.in`; validado por CLI generando y compilando el `.cpp` resultante.
-- **Fase 3 (integración PDE)**: `CppMode`/`CppEditor`/`CppBuild`/`CppRunner` compilan limpio
-  contra la API real de `processing.app.*` (probado contra Processing 4.5.6 y 4.0.1).
+- **Fase 3 (integración PDE)**: `CppModeDev`/`CppEditor`/`CppBuild`/`CppRunner` compilan
+  limpio contra la API real de `processing.app.*` (probado contra Processing 4.5.6 y 4.0.1).
   `CppBuild` invoca g++ y mapea errores a la tab/línea original del sketch.
-- **Fase 4 (UX)**: salto a línea de error vía `SketchException` implementado; ejemplos y
-  pulido de Play/Stop quedaron sin terminar.
-- **Sin validar**: correr el Mode dentro de una instancia real del PDE gráfico (se intentó
-  con Processing 4.5.6, que usa una UI reescrita en Compose Desktop incompatible con este
-  sandbox de desarrollo; con 4.0.1, clásica Swing, sí llegó a abrir ventana, pero no se
-  completó la instalación del Mode antes de encontrar processing-cpp/processing.cpp).
+- **Fase 4 (UX, en curso)**: salto a línea de error vía `SketchException` implementado;
+  **empaquetado e instalación real validados** (`scripts/package-mode.sh` + prueba manual en
+  un sketchbook real: seleccionar el modo, crear sketch, Play, ejecutar — funcionó). Quedan
+  ejemplos adicionales y pulido de Play/Stop.
+- **Notas del proceso de empaquetado** (para no repetir los mismos fallos): el `.jar` hay
+  que compilarlo con `javac --release 17` (el runtime embebido en Processing 4.0.1 no carga
+  bytecode más nuevo, y usamos `record` que exige mínimo Java 16); `mode.properties` no
+  admite continuación de línea con `\` (el parser de Settings.java la marca como "illegal
+  line"); `keywords.txt` necesita al menos una línea válida `<keyword>\t<coloring>`, si no el
+  token marker queda sin inicializar y el editor peta con NPE al abrir cualquier sketch.

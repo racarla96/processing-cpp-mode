@@ -1,5 +1,92 @@
 # keywords.txt
 #
-# Palabras clave para el resaltado de sintaxis del editor C++.
-# TODO (Fase 4 - UX): completar con las keywords de C++ y de la API de
-# processing/ (setup, draw, rect, ellipse, fill, stroke, ...).
+# Palabras clave para el resaltado de sintaxis del editor. Formato:
+# <keyword>\t<coloring> (ver processing.app.syntax.PdeTokenMarker /
+# KeywordMap para los nombres de coloring válidos). Debe tener al menos
+# una línea válida: si el token marker no colorea nada, Mode.java lo
+# deja con el mapa de keywords sin inicializar y el editor peta al abrir
+# un sketch (NullPointerException en PdeTokenMarker.doKeyword()).
+
+# Keywords del lenguaje C++.
+if	KEYWORD1
+else	KEYWORD1
+for	KEYWORD1
+while	KEYWORD1
+do	KEYWORD1
+switch	KEYWORD1
+case	KEYWORD1
+default	KEYWORD1
+break	KEYWORD1
+continue	KEYWORD1
+return	KEYWORD1
+class	KEYWORD1
+struct	KEYWORD1
+public	KEYWORD1
+private	KEYWORD1
+protected	KEYWORD1
+namespace	KEYWORD1
+using	KEYWORD1
+template	KEYWORD1
+typename	KEYWORD1
+const	KEYWORD1
+static	KEYWORD1
+virtual	KEYWORD1
+override	KEYWORD1
+new	KEYWORD1
+delete	KEYWORD1
+this	KEYWORD1
+nullptr	KEYWORD1
+true	KEYWORD1
+false	KEYWORD1
+sizeof	KEYWORD1
+auto	KEYWORD1
+extern	KEYWORD1
+typedef	KEYWORD1
+inline	KEYWORD1
+
+# Tipos.
+void	KEYWORD2
+int	KEYWORD2
+float	KEYWORD2
+double	KEYWORD2
+char	KEYWORD2
+bool	KEYWORD2
+unsigned	KEYWORD2
+signed	KEYWORD2
+short	KEYWORD2
+long	KEYWORD2
+string	KEYWORD2
+
+# Funciones del ciclo de vida del sketch.
+setup	KEYWORD3
+draw	KEYWORD3
+
+# API del runtime (Sketch.h/Shapes.h/Color.h/Input.h).
+size	KEYWORD4
+frameRate	KEYWORD4
+background	KEYWORD4
+fill	KEYWORD4
+stroke	KEYWORD4
+noFill	KEYWORD4
+noStroke	KEYWORD4
+rect	KEYWORD4
+ellipse	KEYWORD4
+triangle	KEYWORD4
+line	KEYWORD4
+point	KEYWORD4
+
+# Variables globales del runtime.
+width	KEYWORD5
+height	KEYWORD5
+frameCount	KEYWORD5
+mouseX	KEYWORD5
+mouseY	KEYWORD5
+pmouseX	KEYWORD5
+pmouseY	KEYWORD5
+mousePressed	KEYWORD5
+mouseButton	KEYWORD5
+keyPressed	KEYWORD5
+key	KEYWORD5
+LEFT	KEYWORD5
+CENTER	KEYWORD5
+RIGHT	KEYWORD5
