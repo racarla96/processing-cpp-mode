@@ -18,8 +18,8 @@ import processing.app.ui.Editor;
 import processing.app.ui.EditorException;
 import processing.app.ui.EditorState;
 import processing.app.ui.EditorToolbar;
-import processing.app.SketchException;
 import processing.app.ui.Toolkit;
+import processing.utils.SketchException;
 
 /**
  * CppEditor.java

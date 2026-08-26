@@ -10,19 +10,17 @@
 # Processing4 distinto (ver CLAUDE.md). Este nombre evita chocar con esa
 # instalación si conviven en el mismo sketchbook.
 #
-# Uso:
-#   scripts/package-mode.sh <ruta-a-una-instalación-de-Processing4>
+# Solo se soporta Processing 4.4+ (layout lib/app/*.jar, UI Compose
+# Desktop) — desde que este proyecto se centra en 4.5.6, se dejó de dar
+# soporte al layout clásico (lib/pde.jar, Processing <= 4.3.x).
 #
-# La ruta debe apuntar a la carpeta raíz de una instalación/portable de
-# Processing4 (la que contiene lib/app/*.jar en las versiones recientes
-# con UI Compose, o lib/pde.jar + core/library/*.jar en las clásicas
-# Swing). El script detecta cuál de los dos layouts es y arma el
-# classpath en consecuencia.
+# Uso:
+#   scripts/package-mode.sh <ruta-a-una-instalación-de-Processing 4.5.6>
 
 set -euo pipefail
 
 if [ $# -ne 1 ]; then
-    echo "Uso: $0 <ruta-a-una-instalación-de-Processing4>" >&2
+    echo "Uso: $0 <ruta-a-una-instalación-de-Processing 4.5.6>" >&2
     exit 1
 fi
 
@@ -32,26 +30,20 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="$REPO_ROOT/dist/$MODE_NAME"
 CLASSES_DIR="$REPO_ROOT/build/mode-classes"
 
-if [ -d "$PROCESSING_HOME/lib/app" ]; then
-    # Layout reciente (Processing 4.4+, UI Compose Desktop).
-    CLASSPATH="$(find "$PROCESSING_HOME/lib/app" -maxdepth 1 -iname '*.jar' | tr '\n' ':')"
-elif [ -f "$PROCESSING_HOME/lib/pde.jar" ]; then
-    # Layout clásico (Swing puro).
-    CLASSPATH="$PROCESSING_HOME/lib/pde.jar:$(find "$PROCESSING_HOME/core/library" -maxdepth 1 -iname '*.jar' | tr '\n' ':')"
-else
+if [ ! -d "$PROCESSING_HOME/lib/app" ]; then
     echo "No se reconoce el layout de Processing en $PROCESSING_HOME" >&2
-    echo "(se esperaba lib/app/*.jar o lib/pde.jar)" >&2
+    echo "(se esperaba lib/app/*.jar, el layout de Processing 4.4+)" >&2
     exit 1
 fi
+CLASSPATH="$(find "$PROCESSING_HOME/lib/app" -maxdepth 1 -iname '*.jar' | tr '\n' ':')"
 
 echo "== Compilando mode/src contra $PROCESSING_HOME =="
 rm -rf "$CLASSES_DIR"
 mkdir -p "$CLASSES_DIR"
-# --release 17: el runtime embebido en las distribuciones de Processing4
-# probadas (4.0.1 clásica) va hasta bytecode de Java 17; compilar con el
-# JDK del sistema sin fijar esto genera clases que ese runtime no puede
-# cargar (UnsupportedClassVersionError). 17 es también el mínimo real
-# porque usamos records (Java 16+).
+# --release 17: el runtime embebido en Processing 4.5.6 no carga
+# bytecode más nuevo que eso; compilar con el JDK del sistema sin fijar
+# esto genera clases que no puede cargar (UnsupportedClassVersionError).
+# 17 es también el mínimo real porque usamos records (Java 16+).
 javac --release 17 -d "$CLASSES_DIR" -cp "$CLASSPATH" "$REPO_ROOT"/mode/src/*.java
 
 echo "== Empaquetando $DIST_DIR =="

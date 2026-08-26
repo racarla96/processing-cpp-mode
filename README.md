@@ -13,15 +13,15 @@ desarrollo.
 
 ## Estado
 
-En Fase 4 de 5. **Validado de extremo a extremo dentro de una instancia real del PDE, en
-Processing 4.0.1 y en la 4.5.6 (la más reciente)**: instalar, seleccionar "C++ (dev)" en el
+En Fase 4 de 5. **Solo se da soporte a Processing 4.5.6 (la más reciente)**. Validado de
+extremo a extremo dentro de una instancia real: instalar, seleccionar "C++ (dev)" en el
 desplegable de modos, abrir un ejemplo o crear un sketch nuevo, pulsar Play, y el binario
 compila y se ejecuta. Ver el detalle en [`CLAUDE.md`](./CLAUDE.md).
 
 ## Instalar
 
 ```
-scripts/package-mode.sh <ruta-a-una-instalación-de-Processing4>
+scripts/package-mode.sh <ruta-a-una-instalación-de-Processing 4.5.6>
 ```
 
 Genera `dist/CppModeDev/`, listo para copiar a `<sketchbook>/modes/CppModeDev/`. Se llama
