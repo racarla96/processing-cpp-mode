@@ -13,9 +13,10 @@ desarrollo.
 
 ## Estado
 
-En Fase 4 de 5. **Validado de extremo a extremo dentro de una instancia real del PDE**:
-instalar, seleccionar "C++ (dev)" en el desplegable de modos, crear un sketch nuevo, pulsar
-Play, y el binario compila y se ejecuta. Ver el detalle en [`CLAUDE.md`](./CLAUDE.md).
+En Fase 4 de 5. **Validado de extremo a extremo dentro de una instancia real del PDE, en
+Processing 4.0.1 y en la 4.5.6 (la más reciente)**: instalar, seleccionar "C++ (dev)" en el
+desplegable de modos, abrir un ejemplo o crear un sketch nuevo, pulsar Play, y el binario
+compila y se ejecuta. Ver el detalle en [`CLAUDE.md`](./CLAUDE.md).
 
 ## Instalar
 

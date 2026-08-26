@@ -79,10 +79,12 @@ aunque técnicamente es código independiente. Referencia: la librería core de 
 LGPL-2.1, pero "todo lo demás incluyendo el PDE" es GPL-2.0 (ver LICENSE.md de processing4).
 
 ## Estado actual
-Retomado en Fase 4. **El Mode ya es instalable y se validó de extremo a extremo dentro de
-una instancia real del PDE** (Processing 4.0.1, UI Swing clásica): aparece "C++ (dev)" en el
-desplegable de modos, se puede crear un sketch nuevo, pulsar Play, y el binario compila y se
-ejecuta. Se llama "C++ (dev)" y no "C++ Mode"/"CppMode" a propósito, para no chocar con
+Retomado en Fase 4. **El Mode ya es instalable y se validó de extremo a extremo dentro de una
+instancia real del PDE, en dos versiones distintas**: Processing 4.0.1 (UI Swing clásica) y
+**4.5.6, la más reciente** (UI Compose Desktop) — aparece "C++ (dev)" en el desplegable de
+modos, se puede abrir un ejemplo o crear un sketch nuevo, pulsar Play, y el binario compila y
+se ejecuta de verdad (confirmado viendo la ventana SDL2 del sketch abierta). Se llama
+"C++ (dev)" y no "C++ Mode"/"CppMode" a propósito, para no chocar con
 processing-cpp/processing.cpp si conviven en el mismo sketchbook (Processing exige que
 carpeta, .jar y clase Java compartan nombre — ver `mode/src/CppModeDev.java`).
 
@@ -105,3 +107,14 @@ Resumen de lo validado:
   admite continuación de línea con `\` (el parser de Settings.java la marca como "illegal
   line"); `keywords.txt` necesita al menos una línea válida `<keyword>\t<coloring>`, si no el
   token marker queda sin inicializar y el editor peta con NPE al abrir cualquier sketch.
+- **Nota sobre lanzar Processing 4.5.6 en un sandbox sin GUI completa**: el lanzador nativo
+  de jpackage (`bin/Processing`) puede fallar con `InaccessibleObjectException` en
+  `LinuxPlatform.initBase` (falta `--add-opens java.desktop/sun.awt.X11=ALL-UNNAMED`), y
+  editar `lib/app/Processing.cfg` para añadirlo puede hacer que el propio lanzador falle en
+  silencio (sin salida, sin excepción) por razones no del todo claras. La solución que
+  funcionó: invocar el JDK completo que trae empaquetado en
+  `lib/app/resources/jdk/bin/java` directamente, con el classpath y las `-D` que aparecen en
+  `Processing.cfg` (sustituyendo `$APPDIR` por `lib/app`), más
+  `--add-opens java.desktop/sun.awt.X11=ALL-UNNAMED`, y `processing.app.ProcessingKt` como
+  clase principal. No es un problema de este proyecto — es del empaquetado de Processing4
+  para Linux en este entorno concreto — pero ahorra tiempo la próxima vez.
