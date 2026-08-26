@@ -18,6 +18,7 @@ import processing.app.ui.Editor;
 import processing.app.ui.EditorException;
 import processing.app.ui.EditorState;
 import processing.app.ui.EditorToolbar;
+import processing.app.SketchException;
 import processing.app.ui.Toolkit;
 
 /**
@@ -25,10 +26,14 @@ import processing.app.ui.Toolkit;
  *
  * Editor del modo C++. Conecta los botones Play/Stop de la barra de
  * herramientas (vía CppToolbar) con CppBuild (compilar) y CppRunner
- * (arrancar/matar el binario resultante). El resto de la UI (menús,
- * consola, resaltado de sintaxis...) lo hereda de Editor sin cambios;
- * pulir esa experiencia (consola de errores clickeable, ocultar la
- * plantilla al usuario...) es Fase 4.
+ * (arrancar/matar el binario resultante), y salta a la tab/línea del
+ * primer error de compilación reusando el mecanismo que ya trae Editor
+ * para SketchException (ver reportProblems()/jumpToProblem()). El resto
+ * de la UI (menús, resaltado de sintaxis...) lo hereda de Editor sin
+ * cambios; el "build/" generado nunca aparece como tab porque Sketch
+ * solo escanea archivos sueltos en la carpeta del sketch, no
+ * subcarpetas, así que la plantilla ya queda oculta al usuario sin
+ * necesidad de nada extra.
  */
 public class CppEditor extends Editor {
 
@@ -172,13 +177,17 @@ public class CppEditor extends Editor {
 
     /** Detiene la ejecución en marcha, si la hay. */
     public void handleStop() {
-        runner.stop();
         getToolbar().activateStop();
+        runner.stop();
         deactivateRun();
         getToolbar().deactivateStop();
         statusEmpty();
     }
 
+    /**
+     * Imprime todos los errores/warnings en la consola y salta a la tab
+     * y línea del primero de los errores (si lo hay).
+     */
     private void reportProblems(List<CppBuild.Problem> problems) {
         if (problems.isEmpty()) {
             return;
@@ -186,9 +195,43 @@ public class CppEditor extends Editor {
         for (CppBuild.Problem problem : problems) {
             System.err.println(problem);
         }
-        problems.stream()
+
+        CppBuild.Problem firstError = problems.stream()
             .filter(p -> p.severity() == CppBuild.Severity.ERROR)
             .findFirst()
-            .ifPresent(first -> statusError(first.message()));
+            .orElse(null);
+        if (firstError != null) {
+            jumpToProblem(firstError);
+        }
+    }
+
+    /**
+     * Mueve la tab activa a la del problema y selecciona su línea,
+     * reusando Editor.statusError(Exception): para un SketchException
+     * con codeIndex/codeLine válidos, Editor ya hace exactamente eso.
+     */
+    private void jumpToProblem(CppBuild.Problem problem) {
+        int codeIndex = (problem.tabName() != null) ? findTabIndex(problem.tabName()) : -1;
+        if (codeIndex == -1) {
+            // Error en código inyectado por el template, fuera de las
+            // tabs del usuario: no hay dónde saltar, solo se muestra
+            // el mensaje (ya impreso arriba en la consola).
+            statusError(problem.message());
+            return;
+        }
+        // SketchException espera línea/columna 0-indexadas;
+        // CppBuild.Problem las da 1-indexadas (como g++).
+        statusError(new SketchException(
+            problem.message(), codeIndex, problem.line() - 1, problem.column() - 1));
+    }
+
+    private int findTabIndex(String tabName) {
+        SketchCode[] code = sketch.getCode();
+        for (int i = 0; i < code.length; i++) {
+            if (code[i].getFileName().equals(tabName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
