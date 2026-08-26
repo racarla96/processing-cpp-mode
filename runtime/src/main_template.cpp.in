@@ -1,0 +1,17 @@
+// main_template.cpp.in
+//
+// Plantilla que envuelve el sketch del usuario (solo setup()/draw()) con
+// main() y el bucle de eventos. CppSketch.java inyecta el código del
+// usuario en el punto marcado abajo para generar el .cpp real a compilar.
+//
+// TODO (Fase 2 - Preprocesador/plantillas): implementar.
+
+#include "processing/Processing.h"
+
+// {{USER_SKETCH_CODE}}
+
+int main(int argc, char** argv) {
+    // TODO: instanciar el sketch, crear ventana y correr el bucle
+    // setup() -> draw() en cada frame.
+    return 0;
+}

@@ -1,0 +1,5 @@
+# keywords.txt
+#
+# Palabras clave para el resaltado de sintaxis del editor C++.
+# TODO (Fase 4 - UX): completar con las keywords de C++ y de la API de
+# processing/ (setup, draw, rect, ellipse, fill, stroke, ...).
