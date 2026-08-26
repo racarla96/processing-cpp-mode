@@ -112,9 +112,13 @@ public class CppEditor extends Editor {
 
         new Thread(() -> {
             try {
+                // Todas las tabs del sketch: .cpp (se concatenan en un
+                // único archivo) y .h/.hpp (auxiliares, ver
+                // CppBuild.build()). code.getProgram() da el contenido
+                // en memoria, con ediciones sin guardar incluidas.
                 List<CppSketch.Tab> tabs = new ArrayList<>();
                 for (SketchCode code : sketch.getCode()) {
-                    if (code.isExtension("cpp")) {
+                    if (code.isExtension("cpp") || code.isExtension("h") || code.isExtension("hpp")) {
                         tabs.add(new CppSketch.Tab(code.getFileName(), code.getProgram()));
                     }
                 }

@@ -142,19 +142,21 @@ public class CppSketch {
     }
 
     /**
-     * Lee las tabs .cpp de un sketch desde disco. La tab principal
-     * (&lt;sketchFolder.getName()&gt;.cpp, si existe) va primero, el
-     * resto en orden alfabético.
+     * Lee las tabs de un sketch desde disco: primero las .cpp (tab
+     * principal — &lt;sketchFolder.getName()&gt;.cpp, si existe —
+     * primero, resto en orden alfabético), luego las .h/.hpp (headers
+     * auxiliares, orden alfabético; no se concatenan como las .cpp, ver
+     * CppBuild.build()).
      */
     public static List<Tab> readTabs(File sketchFolder) throws IOException {
         String sketchName = sketchFolder.getName();
-        File[] found = sketchFolder.listFiles((dir, name) -> name.endsWith(".cpp"));
-        if (found == null || found.length == 0) {
+
+        File[] cppFiles = sketchFolder.listFiles((dir, name) -> name.endsWith(".cpp"));
+        if (cppFiles == null || cppFiles.length == 0) {
             throw new IOException("No se encontraron archivos .cpp en " + sketchFolder);
         }
-
-        List<File> files = new ArrayList<>(List.of(found));
-        files.sort((a, b) -> {
+        List<File> ordered = new ArrayList<>(List.of(cppFiles));
+        ordered.sort((a, b) -> {
             boolean aMain = isMainTab(a, sketchName);
             boolean bMain = isMainTab(b, sketchName);
             if (aMain != bMain) {
@@ -163,8 +165,16 @@ public class CppSketch {
             return a.getName().compareTo(b.getName());
         });
 
+        File[] headerFiles = sketchFolder.listFiles(
+            (dir, name) -> name.endsWith(".h") || name.endsWith(".hpp"));
+        if (headerFiles != null) {
+            List<File> headers = new ArrayList<>(List.of(headerFiles));
+            headers.sort((a, b) -> a.getName().compareTo(b.getName()));
+            ordered.addAll(headers);
+        }
+
         List<Tab> tabs = new ArrayList<>();
-        for (File file : files) {
+        for (File file : ordered) {
             tabs.add(new Tab(file.getName(), readFile(file)));
         }
         return tabs;

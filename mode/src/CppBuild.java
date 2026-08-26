@@ -53,8 +53,16 @@ public class CppBuild {
      * Preprocesa el sketch (tabs ya en memoria, con ediciones sin
      * guardar incluidas) y lo compila junto a las fuentes del runtime.
      *
+     * Las tabs .cpp se concatenan en un único archivo (ver CppSketch);
+     * las tabs .h/.hpp se escriben tal cual en buildDir, junto al .cpp
+     * generado, para que un #include "Miclase.hpp" en cualquier tab
+     * .cpp resuelva por búsqueda en el mismo directorio (el .cpp
+     * generado no vive en la carpeta del sketch, sino en buildDir, así
+     * que sin esto un #include relativo al sketch no encontraría nada).
+     *
      * @param sketchName        nombre del sketch (y del ejecutable resultante).
-     * @param tabs               tabs .cpp del sketch, tab principal primero.
+     * @param tabs               todas las tabs del sketch (.cpp y .h/.hpp), tab
+     *                           principal primero.
      * @param buildDir           carpeta donde escribir el .cpp generado y el binario.
      * @param templateFile       runtime/src/main_template.cpp.in.
      * @param runtimeIncludeDir  runtime/include (contiene processing/Processing.h).
@@ -63,8 +71,26 @@ public class CppBuild {
     public static Result build(String sketchName, List<CppSketch.Tab> tabs, File buildDir,
                                File templateFile, File runtimeIncludeDir, File runtimeSrcDir)
             throws IOException, InterruptedException {
+        List<CppSketch.Tab> cppTabs = new ArrayList<>();
+        List<CppSketch.Tab> headerTabs = new ArrayList<>();
+        for (CppSketch.Tab tab : tabs) {
+            if (tab.name().endsWith(".cpp")) {
+                cppTabs.add(tab);
+            } else {
+                headerTabs.add(tab);
+            }
+        }
+
+        if (!buildDir.exists() && !buildDir.mkdirs()) {
+            throw new IOException("No se pudo crear el directorio de build " + buildDir);
+        }
+        for (CppSketch.Tab header : headerTabs) {
+            java.nio.file.Files.writeString(
+                new File(buildDir, header.name()).toPath(), header.content());
+        }
+
         String templateSource = readFile(templateFile);
-        CppSketch.Preprocessed preprocessed = CppSketch.preprocess(templateSource, tabs);
+        CppSketch.Preprocessed preprocessed = CppSketch.preprocess(templateSource, cppTabs);
         File generatedFile = CppSketch.writeGenerated(preprocessed, buildDir, sketchName);
         File executable = new File(buildDir, sketchName);
 
@@ -86,13 +112,14 @@ public class CppBuild {
         String stderr = readAll(process.getErrorStream());
         int exitCode = process.waitFor();
 
-        List<Problem> problems = parseProblems(stderr, generatedFile.getName(), preprocessed);
+        List<Problem> problems = parseProblems(stderr, generatedFile.getName(), preprocessed, headerTabs);
         boolean success = exitCode == 0 && executable.exists();
         return new Result(success, success ? executable : null, problems);
     }
 
     static List<Problem> parseProblems(String compilerOutput, String generatedFileName,
-                                       CppSketch.Preprocessed preprocessed) {
+                                       CppSketch.Preprocessed preprocessed,
+                                       List<CppSketch.Tab> headerTabs) {
         List<Problem> problems = new ArrayList<>();
         for (String rawLine : compilerOutput.split("\n")) {
             Matcher m = DIAGNOSTIC.matcher(rawLine.strip());
@@ -100,27 +127,47 @@ public class CppBuild {
                 continue;
             }
 
-            // Solo nos interesan los diagnósticos sobre el archivo
-            // generado; uno sobre un header del runtime (processing/*.h)
-            // apuntaría a un bug del runtime, no del sketch del usuario.
             String file = m.group("file");
-            if (!file.endsWith(generatedFileName)) {
-                continue;
-            }
-
-            int genLine = Integer.parseInt(m.group("line"));
+            int lineNum = Integer.parseInt(m.group("line"));
             int col = Integer.parseInt(m.group("col"));
             Severity severity = m.group("severity").equals("error") ? Severity.ERROR : Severity.WARNING;
             String message = m.group("msg");
 
-            CppSketch.TabLocation loc = preprocessed.locate(genLine);
-            if (loc != null) {
-                problems.add(new Problem(severity, loc.tabName(), loc.line(), col, message));
-            } else {
-                problems.add(new Problem(severity, null, genLine, col, message));
+            if (file.endsWith(generatedFileName)) {
+                // Diagnóstico sobre el .cpp generado: mapear de vuelta a
+                // la tab/línea original vía CppSketch.Preprocessed.
+                CppSketch.TabLocation loc = preprocessed.locate(lineNum);
+                if (loc != null) {
+                    problems.add(new Problem(severity, loc.tabName(), loc.line(), col, message));
+                } else {
+                    problems.add(new Problem(severity, null, lineNum, col, message));
+                }
+            } else if (isHeaderTab(file, headerTabs)) {
+                // Diagnóstico sobre una tab .h/.hpp del sketch: se
+                // escribió tal cual (ver build()), así que la línea que
+                // reporta g++ ya es la línea real de la tab.
+                problems.add(new Problem(severity, baseName(file), lineNum, col, message));
             }
+            // Cualquier otro archivo (p.ej. un header del runtime,
+            // processing/*.h) sería un bug del runtime, no del sketch
+            // del usuario: se ignora aquí a propósito.
         }
         return problems;
+    }
+
+    private static boolean isHeaderTab(String file, List<CppSketch.Tab> headerTabs) {
+        String name = baseName(file);
+        for (CppSketch.Tab header : headerTabs) {
+            if (header.name().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String baseName(String path) {
+        int slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        return slash == -1 ? path : path.substring(slash + 1);
     }
 
     /**
