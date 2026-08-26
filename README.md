@@ -30,6 +30,12 @@ si tienes ese Mode instalado (Processing exige que carpeta, .jar y clase Java co
 nombre). Reinicia Processing y selecciona **C++ (dev)** en el desplegable de modos (arriba a
 la derecha).
 
+## Roadmap
+
+Ver [`NATURE_OF_CODE.md`](./NATURE_OF_CODE.md) para el plan de ampliación del runtime
+(vectores, ruido Perlin, transformaciones...) de cara a soportar los ejercicios de
+*The Nature of Code*.
+
 ## Licencia
 
 GPL-2.0. Ver [`LICENSE`](./LICENSE).
